@@ -6,9 +6,24 @@
 typedef unsigned int ErrorType;
 #define ERROR_TYPE__PARAMS_NOT_ENOUGH 0
 #define ERROR_TYPE__ERROR_IP_ADDRESS_FORMAT 1
+#define ERROR_TYPE__ERROR_PARAM_OR_NOT_IN_RANGE_N 2
+#define ERROR_TYPE__ERROR_PARAM_OR_NOT_IN_RANGE_L 3
+
+// 定义默认设置
+#define DEFAULT_SEND_TIME 4
+#define DEFAULT_PACKAGE_LENGTH 100
+
+// 定义参数范围
+#define PARAM_RANGE_N_START 1
+#define PARAM_RANGE_N_END 20
+#define PARAM_RANGE_L_START 100
+#define PARAM_RANGE_L_END 200
 
 // 预定义函数
 void endWithError(ErrorType errorType);
+int checkIpAddress(char *ipAddress);
+int checkIfNumberInRange(int target, int start, int end);
+void ping(char *ipAddress, int sendTime, int packageLength);
 
 /**
  * main()
@@ -18,12 +33,43 @@ void endWithError(ErrorType errorType);
  * @return
  */
 int main(int argc, char *argv[]) {
+    int i, n = DEFAULT_SEND_TIME, l = DEFAULT_PACKAGE_LENGTH, number;
+
     // 参数判断，如果参数小于两个，则说明没有输入IP地址
     if (argc < 2) { endWithError(ERROR_TYPE__PARAMS_NOT_ENOUGH); }
 
     // 校验 IP 地址格式是否正确
     char *ipAddress = argv[1];
     if (!ipAddress) { endWithError(ERROR_TYPE__ERROR_IP_ADDRESS_FORMAT); }
+
+    // 遍历后面的参数
+    for (i = 2; i < argc; i++) {
+        // 如果有 -n
+        if (!strcmp(argv[i], "-n")) {
+            if (i + 1 >= argc) { endWithError(ERROR_TYPE__ERROR_PARAM_OR_NOT_IN_RANGE_N); }
+            // 查找其下一个参数并且转换成数字
+            number = atoi(argv[i + 1]);
+            if (!checkIfNumberInRange(number, PARAM_RANGE_N_START, PARAM_RANGE_N_END)) {
+                endWithError(ERROR_TYPE__ERROR_PARAM_OR_NOT_IN_RANGE_N);
+            }
+            n = number;
+            i++;
+        }
+        // 如果有 -l
+        if (!strcmp(argv[i], "-l")) {
+            if (i + 1 >= argc) { endWithError(ERROR_TYPE__ERROR_PARAM_OR_NOT_IN_RANGE_L); }
+            // 一样
+            number = atoi(argv[i + 1]);
+            if (!checkIfNumberInRange(number, PARAM_RANGE_L_START, PARAM_RANGE_L_END)) {
+                endWithError(ERROR_TYPE__ERROR_PARAM_OR_NOT_IN_RANGE_L);
+            }
+            l = number;
+            i++;
+        }
+    }
+
+    // 执行 ping 行为函数
+    ping(ipAddress, n, l);
 
     return 0;
 }
@@ -43,6 +89,13 @@ void endWithError(ErrorType errorType) {
         case ERROR_TYPE__ERROR_IP_ADDRESS_FORMAT:
             printf("Error IP address format. Please try again.\n");
             break;
+        case ERROR_TYPE__ERROR_PARAM_OR_NOT_IN_RANGE_N:
+            printf("Error param or not in range: -n\n");
+            printf("Usage: [-n] [number in range %d-%d]\n", PARAM_RANGE_N_START, PARAM_RANGE_N_END);
+            break;
+        case ERROR_TYPE__ERROR_PARAM_OR_NOT_IN_RANGE_L:
+            printf("Error param or not in range: -l\n");
+            printf("Usage: [-l] [number in range %d-%d]\n", PARAM_RANGE_L_START, PARAM_RANGE_L_END);
         default:
             printf("Unknown error. Please try again.\n");
             break;
@@ -77,4 +130,30 @@ int checkIpAddress(char *ipAddress) {
     if (count != 3) { return 0; }
 
     return 1;
+}
+
+/**
+ * checkIfNumberInRange()
+ * @description 校验数字是否在范围内
+ * @param {int} target 目标
+ * @param {int} start 范围开始
+ * @param {int} end 范围结束
+ */
+int checkIfNumberInRange(int target, int start, int end) {
+    if (target < start || target > end) { return 0; }
+    return 1;
+}
+
+/**
+ * ping()
+ * @description ping程序行为函数
+ * @param {char *} ipAddress IP地址
+ * @param {int} sendTime 发送次数
+ * @param {int} 包长度
+ */
+void ping(char *ipAddress, int sendTime, int packageLength) {
+    printf("ipAddress: %s\n", ipAddress);
+    printf("sendTime: %d\n", sendTime);
+    printf("packageLength: %d\n", packageLength);
+    // TODO
 }
