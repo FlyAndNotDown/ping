@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // 定义错误类型
 typedef unsigned int ErrorType;
@@ -57,6 +58,23 @@ void endWithError(ErrorType errorType) {
  * @return {0|1} IP地址是否符合规范
  */
 int checkIpAddress(char *ipAddress) {
-    // TODO
+    int i, count = 0, number;
+    char *temp;
+
+    // 拷贝字符串
+    char *ipAddressCopy = (char *) malloc((sizeof char) * strlen(ipAddress) + 1);
+    for (i = 0; i < strlen(ipAddress); i++) { ipAddressCopy[i] = ipAddress[i]; }
+    ipAddressCopy[i] = '\0';
+
+    // 依次分割字符串，看是否有三个点，并且点之间的每一个字符串都满足数字范围
+    temp = strtok(ipAddressCopy, ".");
+    while (temp != NULL) {
+        count++;
+        number = atoi(temp);
+        if (number == 0 && temp[0] != '0') { return 0; }
+        if (!(number >= 0 && number <= 255)) { return 0; }
+    }
+    if (count != 3) { return 0; }
+
     return 1;
 }
