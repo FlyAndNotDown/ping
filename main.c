@@ -1,6 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <unistd.h>
+#include <signal.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <sys/time.h>
+#include <string.h>
+#include <netdb.h>
+#include <pthread.h>
 
 #define DEFAULT_N 0
 #define DEFAULT_L 100
