@@ -155,6 +155,10 @@ int ping(char *addressArg, int n, int l) {
                     continue;
                 }
 
+                if (DEV_MODE) {
+                    printf("recvSize: %d\n", recvSize);
+                }
+
                 // 解包
                 // 获取 ip 包头
                 struct ip *ipHeader = (struct ip *) recvBuffer;
@@ -171,32 +175,36 @@ int ping(char *addressArg, int n, int l) {
                     continue;
                 }
 
-                // 判断是 icmp 回应包而且是本机发的
-                // if (icmpHeader->icmp_type == ICMP_ECHOREPLY/* && icmpHeader->icmp_id == (pid & 0xffff)*/) {
-                //
-                // } else {
-                //     printf("Invalid icmp package, because it's not a icmp echoreply or it's sender is not the host\n");
-                //     continue;
-                // }
-                if (icmpHeader->icmp_seq < 0 || icmpHeader->icmp_seq > n + 1) {
-                    printf("Sequence of icmp package is out of range.\n");
-                    continue;
+                if (DEV_MODE) {
+                    printf("icmp->icmp_type: %d ICMP_ECHOREPLY:%d\n", icmpHeader->icmp_type, ICMP_ECHOREPLY);
+                    printf("icmp->icmp_id: %d pid: %d\n", icmpHeader->icmp_id, pid);
                 }
 
-                // 记下收包时间
-                gettimeofday(&endTime, NULL);
-                // 计算时差
-                offsetTime = getOffsetTime(beginTime, endTime);
+                // 判断是 icmp 回应包而且是本机发的
+                if (icmpHeader->icmp_type == ICMP_ECHOREPLY && icmpHeader->icmp_id == (pid & 0xffff)) {
+                    if (icmpHeader->icmp_seq < 0 || icmpHeader->icmp_seq > n + 1) {
+                        printf("Sequence of icmp package is out of range.\n");
+                        continue;
+                    }
 
-                // 输出结果
-                printf(
-                    "%d byte from %s: seq=%u ttl=%d rtt=%d ms\n",
-                    l,
-                    inet_ntoa(ipHeader->ip_src),
-                    icmpHeader->icmp_seq,
-                    ipHeader->ip_ttl,
-                    offsetTime.tv_sec * 1000 + offsetTime.tv_usec / 1000
-                );
+                    // 记下收包时间
+                    gettimeofday(&endTime, NULL);
+                    // 计算时差
+                    offsetTime = getOffsetTime(beginTime, endTime);
+
+                    // 输出结果
+                    printf(
+                        "%d byte from %s: seq=%u ttl=%d rtt=%d ms\n",
+                        l,
+                        inet_ntoa(ipHeader->ip_src),
+                        icmpHeader->icmp_seq,
+                        ipHeader->ip_ttl,
+                        offsetTime.tv_sec * 1000 + offsetTime.tv_usec / 1000
+                    );
+                } else {
+                    printf("Invalid icmp package, because it's not a icmp echoreply or it's sender is not the host\n");
+                    continue;
+                }
 
                 break;
         }
