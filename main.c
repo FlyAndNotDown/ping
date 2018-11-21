@@ -18,7 +18,7 @@
 
 // 默认参数
 #define DEFAULT_N 0
-#define DEFAULT_L 64
+#define DEFAULT_L 56
 
 // 缓冲区大小
 #define SEND_BUFFER_SIZE 64
@@ -105,12 +105,14 @@ int ping(char *addressArg, int n, int l) {
 
     // 输出信息
     printf(
-        "Ping %s, (%d, %d, %d, %d)\n",
+        "ping %s, (%d, %d, %d, %d) (%d)%d bytes of data.\n",
         addressArg,
         internetAddress & 0x000000ff,
         (internetAddress & 0x0000ff00) >> 8,
         (internetAddress & 0x00ff0000) >> 16,
-        (internetAddress & 0xff000000) >> 24
+        (internetAddress & 0xff000000) >> 24,
+        l,
+        l + 28
     );
 
     // 读文件描述符
@@ -194,7 +196,7 @@ int ping(char *addressArg, int n, int l) {
 
                     // 输出结果
                     printf(
-                        "%d byte from %s: seq=%u ttl=%d rtt=%d ms\n",
+                        "%d byte from %s: icmp_seq=%u ttl=%d rtt=%d ms\n",
                         l,
                         inet_ntoa(ipHeader->ip_src),
                         icmpHeader->icmp_seq,
