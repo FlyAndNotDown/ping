@@ -14,7 +14,7 @@
 #include <pthread.h>
 
 // 调试模式
-#define DEV_MODE 0
+#define DEV_MODE 1
 
 // 默认参数
 #define DEFAULT_N 0
@@ -127,9 +127,13 @@ int ping(char *addressArg, int n, int l) {
         // 封装 icmp 包
         assembleIcmpPackage((struct icmp *) sendBuffer, ++count, l, pid);
         // 发送 icmp 包
-        if (sendto(sock, sendBuffer, l > 10 ? l : 64, 0, (struct sockaddr *) &address, sizeof(address)) < 0) {
+        if (sendto(sock, sendBuffer, l, (struct sockaddr *) &address, sizeof(address)) < 0) {
             printf("Send data fail.\n");
             continue;
+        }
+
+        if (DEV_MODE) {
+            printf("Send data success\n");
         }
 
         // 计时
