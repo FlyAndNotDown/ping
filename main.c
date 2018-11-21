@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     int n = DEFAULT_N, l = DEFAULT_L;
 
     if (argc < 2) {
-        printf("Usage: ping ipAddress [-n] [sendTimes] [-l] [packageLength]\n");
+        printf("Usage: ping addressArg [-n] [sendTimes] [-l] [packageLength]\n");
         return 0;
     }
 
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-int ping(char *ipAddress, int n, int l) {
+int ping(char *addressArg, int n, int l) {
     char sendBuffer[SEND_BUFFER_SIZE], recvBuffer[RECV_BUFFER_SIZE];
     memset(sendBuffer, 0, sizeof(sendBuffer));
     memset(recvBuffer, 0, sizeof(recvBuffer));
@@ -78,20 +78,27 @@ int ping(char *ipAddress, int n, int l) {
 
     // 改造 ip 地址
     struct sockaddr_in address;
-    unsigned int internetAddress = inet_addr(ipAddress);
+    unsigned int internetAddress = inet_addr(addressArg);
     if (internetAddress == INADDR_NONE) {
-        printf("Invalid ip address.\n");
-        return 0;
+        // 如果输入的是域名地址
+        struct hostent *host = gethostbyname(addressArg);
+        if (host == NULL) {
+            printf("Fail to get host name.\n");
+            return 0;
+        }
+
+        memcpy((char *) &address.sin_addr, host->h_addr, host->h_length);
+    } else {
+        memcpy((char *) &address.sin_addr, &internetAddress, sizeof(internetAddress));
     }
     bzero(&address, sizeof(address));
     address.sin_family = AF_INET;
-    memcpy((char *) &address.sin_addr, &internetAddress, sizeof(internetAddress));
     internetAddress = address.sin_addr.s_addr;
 
     // 输出信息
     printf(
         "Ping %s, (%d, %d, %d, %d)\n",
-        ipAddress,
+        addressArg,
         internetAddress & 0x000000ff,
         (internetAddress & 0x0000ff00) >> 8,
         (internetAddress & 0x00ff0000) >> 16,
