@@ -139,11 +139,11 @@ int ping(char *ipAddress, int n, int l) {
 
                 // 解包
                 // 获取 ip 包头
-                struct *ipHeader = (struct ip *) recvBuffer;
+                struct ip *ipHeader = (struct ip *) recvBuffer;
                 // 获取 ip 包头长度 (ip_hl是以字节为单位)
                 int ipHeaderLength = ipHeader->ip_hl * 4;
                 // 获取 icmp 包头
-                struct *icmpHeader = (struct icmp *) (recvBuffer + ipHeaderLength);
+                struct icmp *icmpHeader = (struct icmp *) (recvBuffer + ipHeaderLength);
                 // 获取 icmp 包长度
                 int icmpPackgeLength = recvSize - ipHeaderLength;
 
