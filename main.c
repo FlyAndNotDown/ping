@@ -67,7 +67,7 @@ int ping(char *addressArg, int n, int l) {
     memset(sendBuffer, 0, sizeof(sendBuffer));
     memset(recvBuffer, 0, sizeof(recvBuffer));
 
-    int count = 0, nt = n;
+    int count = 0, nt = n == 0 ? 1 : n;
 
     // 获取进程标识符
     pid_t pid = getpid();
