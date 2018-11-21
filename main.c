@@ -125,7 +125,7 @@ int ping(char *addressArg, int n, int l) {
 
     while (nt > 0) {
         // 封装 icmp 包
-        assembleIcmpPackage((struct icmp *) sendBuffer, count, l, pid);
+        assembleIcmpPackage((struct icmp *) sendBuffer, count++, l, pid);
         // 发送 icmp 包
         if (sendto(sock, sendBuffer, SEND_BUFFER_SIZE, 0, (struct sockaddr *) &address, sizeof(address)) < 0) {
             printf("Send data fail.\n");
