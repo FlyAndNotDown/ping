@@ -28,7 +28,7 @@
 // 函数声明
 int ping(char *, int, int);
 void assembleIcmpPackage(struct icmp *, int, int, pid_t);
-struct timeval getOffsetTime(struct timeval, struct timeval)
+struct timeval getOffsetTime(struct timeval, struct timeval);
 unsigned short getCheckSum(unsigned short *, int);
 
 int main(int argc, char *argv[]) {
