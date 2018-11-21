@@ -25,8 +25,8 @@
 #define RECV_BUFFER_SIZE 1024 * 1024
 
 // 超时设置
-#define OUT_TIMEVAL_USEC 200
-#define OUT_TIMEVAL_SEC 0
+#define OUT_TIMEVAL_USEC 0
+#define OUT_TIMEVAL_SEC 1000
 
 // 函数声明
 int ping(char *, int, int);
