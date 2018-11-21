@@ -178,6 +178,7 @@ int ping(char *addressArg, int n, int l) {
                 if (DEV_MODE) {
                     printf("icmp->icmp_type: %d ICMP_ECHOREPLY:%d\n", icmpHeader->icmp_type, ICMP_ECHOREPLY);
                     printf("icmp->icmp_id: %d pid: %d\n", icmpHeader->icmp_id, pid);
+                    printf("icmp->icmp_seq: %d\n", icmpHeader->seq);
                 }
 
                 // 判断是 icmp 回应包而且是本机发的
