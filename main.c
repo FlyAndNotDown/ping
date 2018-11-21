@@ -172,7 +172,7 @@ int ping(char *addressArg, int n, int l) {
                 }
 
                 // 判断是 icmp 回应包而且是本机发的
-                if (icmpHeader->icmp_type == ICMP_ECHOREPLY && icmpHeader->icmp_id == (pid & 0xffff)) {
+                if (/*icmpHeader->icmp_type == ICMP_ECHOREPLY*/ && icmpHeader->icmp_id == (pid & 0xffff)) {
                     if (icmpHeader->icmp_seq < 0 || icmpHeader->icmp_seq > n + 1) {
                         printf("Sequence of icmp package is out of range.\n");
                         continue;
