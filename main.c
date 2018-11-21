@@ -21,11 +21,7 @@
 void ping(char *, int, int);
 void endWithHelp();
 void assembleIcmpPackage(struct icmp *, int, int);
-int splitIcmpPackage(char *, int);
 unsigned short getCheckSum(unsigned short *, int);
-
-// 定义进程标识
-pid_t pid;
 
 int main(int argc, char *argv[]) {
     int i;
@@ -44,19 +40,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // 获取 pid
-    pid = getpid();
-
-    ping(argv[1], n, l);
+    ping(argv[1], n, l, getpid());
 
     return 0;
 }
 
-void ping(char *ipAddress, int n, int l) {
+void ping(char *ipAddress, int n, int l, pid_t pid) {
     // TODO
 }
 
-void assembleIcmpPackage(struct icmp *header, int sequence, int length) {
+void assembleIcmpPackage(struct icmp *header, int sequence, int length, pid_t pid) {
     int i;
 
     // icmp类型：回送请求
@@ -77,16 +70,6 @@ void assembleIcmpPackage(struct icmp *header, int sequence, int length) {
 
     // 计算校验和
     header->icmp_cksum = getCheckSum((unsigned short *) header, length);
-}
-
-int splitIcmpPackage(char *buffer, int length) {
-    int ipHeaderLength;
-    struct timeval beginTime, endTime, offsetTime;
-    int roundTripTime;
-
-    struct ip *ipHeader = (struct ip *) buffer;
-
-    // TODO
 }
 
 unsigned short getCheckSum(unsigned short *header, int length) {
