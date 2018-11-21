@@ -64,6 +64,7 @@ void ping(char *ipAddress, int n, int l) {
     pid_t pid = getpid();
 
     // 建立套接字
+    struct protoent* protocol = getprotobyname('icmp');
     int sock = socket(AF_INET, SOCK_RAW, protocol->p_proto);
     if (sock < 0) {
         printf("Can't create socket.\n");
@@ -90,10 +91,10 @@ void ping(char *ipAddress, int n, int l) {
     printf(
         "Ping %s, (%d, %d, %d, %d)\n",
         ipAddress,
-        (inaddr&0x000000ff),
-        (inaddr&0x0000ff00)>>8,
-        (inaddr&0x00ff0000)>>16,
-        (inaddr&0xff000000)>>24)
+        (address & 0x000000ff),
+        (address & 0x0000ff00) >> 8,
+        (address & 0x00ff0000) >> 16,
+        (address & 0xff000000) >> 24
     );
 
     // 读文件描述符
