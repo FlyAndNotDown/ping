@@ -13,6 +13,9 @@
 #include <netdb.h>
 #include <pthread.h>
 
+// 调试模式
+#define DEV_MODE 1
+
 // 默认参数
 #define DEFAULT_N 0
 #define DEFAULT_L 64
@@ -55,6 +58,11 @@ int main(int argc, char *argv[]) {
 }
 
 int ping(char *addressArg, int n, int l) {
+    if (DEV_MODE) {
+        printf("n: %d\n", n);
+        printf("l: %d\n", l);
+    }
+
     char sendBuffer[SEND_BUFFER_SIZE], recvBuffer[RECV_BUFFER_SIZE];
     memset(sendBuffer, 0, sizeof(sendBuffer));
     memset(recvBuffer, 0, sizeof(recvBuffer));
