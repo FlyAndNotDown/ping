@@ -92,10 +92,10 @@ int ping(char *ipAddress, int n, int l) {
     printf(
         "Ping %s, (%d, %d, %d, %d)\n",
         ipAddress,
-        (address & 0x000000ff),
-        (address & 0x0000ff00) >> 8,
-        (address & 0x00ff0000) >> 16,
-        (address & 0xff000000) >> 24
+        internetAddress & 0x000000ff,
+        (internetAddress & 0x0000ff00) >> 8,
+        (internetAddress & 0x00ff0000) >> 16,
+        (internetAddress & 0xff000000) >> 24
     );
 
     // 读文件描述符
