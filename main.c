@@ -64,8 +64,8 @@ int ping(char *addressArg, int n, int l) {
     }
 
     char sendBuffer[SEND_BUFFER_SIZE], recvBuffer[RECV_BUFFER_SIZE];
-    memset(sendBuffer, '\0', sizeof(sendBuffer));
-    memset(recvBuffer, '\0', sizeof(recvBuffer));
+    memset(sendBuffer, 0, sizeof(sendBuffer));
+    memset(recvBuffer, 0, sizeof(recvBuffer));
 
     int count = 0, nt = n == 0 ? 1 : n;
 
