@@ -18,7 +18,7 @@
 
 // 默认参数
 #define DEFAULT_N 0
-#define DEFAULT_L 56
+#define DEFAULT_L 64
 
 // 缓冲区大小
 #define SEND_BUFFER_SIZE 64
