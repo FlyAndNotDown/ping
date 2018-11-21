@@ -18,10 +18,10 @@
 
 // 默认参数
 #define DEFAULT_N 0
-#define DEFAULT_L 64
+#define DEFAULT_L 56
 
 // 缓冲区大小
-#define SEND_BUFFER_SIZE 64
+#define SEND_BUFFER_SIZE 1024 * 1024
 #define RECV_BUFFER_SIZE 1024 * 1024
 
 // 超时设置
@@ -127,7 +127,7 @@ int ping(char *addressArg, int n, int l) {
         // 封装 icmp 包
         assembleIcmpPackage((struct icmp *) sendBuffer, ++count, l, pid);
         // 发送 icmp 包
-        if (sendto(sock, sendBuffer, SEND_BUFFER_SIZE, 0, (struct sockaddr *) &address, sizeof(address)) < 0) {
+        if (sendto(sock, sendBuffer, l, 0, (struct sockaddr *) &address, sizeof(address)) < 0) {
             printf("Send data fail.\n");
             continue;
         }
