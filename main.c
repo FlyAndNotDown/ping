@@ -125,7 +125,7 @@ int ping(char *addressArg, int n, int l) {
 
     while (nt > 0) {
         // 封装 icmp 包
-        assembleIcmpPackage((struct icmp *) sendBuffer, count++, l, pid);
+        assembleIcmpPackage((struct icmp *) sendBuffer, ++count, l, pid);
         // 发送 icmp 包
         if (sendto(sock, sendBuffer, SEND_BUFFER_SIZE, 0, (struct sockaddr *) &address, sizeof(address)) < 0) {
             printf("Send data fail.\n");
@@ -184,7 +184,7 @@ int ping(char *addressArg, int n, int l) {
 
                 // 判断是 icmp 回应包而且是本机发的
                 if (icmpHeader->icmp_type == ICMP_ECHOREPLY && icmpHeader->icmp_id == (pid & 0xffff)) {
-                    if (icmpHeader->icmp_seq < 0 || n == 0 ? 0 : icmpHeader->icmp_seq > n + 1) {
+                    if (icmpHeader->icmp_seq < 0 || n != 0 && icmpHeader->icmp_seq > n + 1) {
                         printf("Sequence of icmp package is out of range.\n");
                         continue;
                     }
