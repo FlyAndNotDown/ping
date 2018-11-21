@@ -26,8 +26,9 @@
 #define OUT_TIMEVAL_SEC 0
 
 // 函数声明
-void ping(char *, int, int);
+int ping(char *, int, int);
 void assembleIcmpPackage(struct icmp *, int, int, pid_t);
+struct timeval getOffsetTime(struct timeval, struct timeval)
 unsigned short getCheckSum(unsigned short *, int);
 
 int main(int argc, char *argv[]) {
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void ping(char *ipAddress, int n, int l) {
+int ping(char *ipAddress, int n, int l) {
     char sendBuffer[SEND_BUFFER_SIZE], recvBuffer[RECV_BUFFER_SIZE];
     memset(sendBuffer, 0, sizeof(sendBuffer));
     memset(recvBuffer, 0, sizeof(recvBuffer));
@@ -64,7 +65,7 @@ void ping(char *ipAddress, int n, int l) {
     pid_t pid = getpid();
 
     // 建立套接字
-    struct protoent* protocol = getprotobyname('icmp');
+    struct protoent* protocol = getprotobyname("icmp");
     int sock = socket(AF_INET, SOCK_RAW, protocol->p_proto);
     if (sock < 0) {
         printf("Can't create socket.\n");
