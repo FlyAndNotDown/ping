@@ -17,10 +17,17 @@
 #define DEFAULT_N 0
 #define DEFAULT_L 64
 
+// 缓冲区大小
+#define SEND_BUFFER_SIZE 1024
+#define RECV_BUFFER_SIZE 1024 * 1024
+
+// 超时设置
+#define OUT_TIMEVAL_USEC 200
+#define OUT_TIMEVAL_SEC 0
+
 // 函数声明
 void ping(char *, int, int);
-void endWithHelp();
-void assembleIcmpPackage(struct icmp *, int, int);
+void assembleIcmpPackage(struct icmp *, int, int, pid_t);
 unsigned short getCheckSum(unsigned short *, int);
 
 int main(int argc, char *argv[]) {
@@ -28,7 +35,8 @@ int main(int argc, char *argv[]) {
     int n = DEFAULT_N, l = DEFAULT_L;
 
     if (argc < 2) {
-        endWithHelp();
+        printf("Usage: ping ipAddress [-n] [sendTimes] [-l] [packageLength]\n");
+        return 0;
     }
 
     for (i = 2; i < argc; i++) {
@@ -40,13 +48,141 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    ping(argv[1], n, l, getpid());
+    ping(argv[1], n, l);
 
     return 0;
 }
 
-void ping(char *ipAddress, int n, int l, pid_t pid) {
-    // TODO
+void ping(char *ipAddress, int n, int l) {
+    char sendBuffer[SEND_BUFFER_SIZE], recvBuffer[RECV_BUFFER_SIZE];
+    memset(sendBuffer, 0, sizeof(sendBuffer));
+    memset(recvBuffer, 0, sizeof(recvBuffer));
+
+    int count = 0, nt = n;
+
+    // 获取进程标识符
+    pid_t pid = getpid();
+
+    // 建立套接字
+    int sock = socket(AF_INET, SOCK_RAW, protocol->p_proto);
+    if (sock < 0) {
+        printf("Can't create socket.\n");
+        return 0;
+    }
+
+    // 设置接收缓冲区大小
+    int recvBufferSize = RECV_BUFFER_SIZE;
+    setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &recvBufferSize, sizeof(recvBufferSize));
+
+    // 改造 ip 地址
+    struct sockaddr_in address;
+    unsigned int internetAddress = inet_addr(ipAddress);
+    if (internetAddress == INADDR_NONE) {
+        printf("Invalid ip address.\n");
+        return 0;
+    }
+    bzero(&address, sizeof(address));
+    address.sin_family = AF_INET;
+    memcpy((char *) &address.sin_addr, &internetAddress, sizeof(internetAddress));
+    internetAddress = address.sin_addr.s_addr;
+
+    // 输出信息
+    printf(
+        "Ping %s, (%d, %d, %d, %d)\n",
+        ipAddress,
+        (inaddr&0x000000ff),
+        (inaddr&0x0000ff00)>>8,
+        (inaddr&0x00ff0000)>>16,
+        (inaddr&0xff000000)>>24)
+    );
+
+    // 读文件描述符
+    fd_set readFd;
+
+    // 超时设置
+    struct timeval tv;
+    tv.tv_usec = OUT_TIMEVAL_USEC;
+    tv.tv_sec = OUT_TIMEVAL_SEC;
+
+    while (nt > 0) {
+        // 封装 icmp 包
+        assembleIcmpPackage((struct icmp *) sendBuffer, count, l, pid);
+        // 发送 icmp 包
+        // TODO
+        if (sendto(sock, sendBuffer, sizeof(sendBuffer), 0, (struct sockaddr *) &address, sizeof(address)) < 0) {
+            printf("Send data fail.\n");
+            continue;
+        }
+
+        // 计时
+        struct timeval beginTime, endTime, offsetTime;
+        gettimeofday(&beginTime, NULL);
+
+        // 开始收包
+        FD_ZERO(&readFd);
+        FD_SET(sock, &readFd);
+        switch (select(sock + 1, &readFd, NULL, NULL, &tv)) {
+            case -1:
+                printf("Fail to select\n");
+                break;
+            case 0:
+                break;
+            default:
+                int recvSize = recv(sock, recvBuffer, sizeof(recvBuffer), 0);
+                // 接受数据到缓冲区
+                if (recvSize < 0) {
+                    printf("Fail to receive data\n");
+                    continue;
+                }
+
+                // 解包
+                // 获取 ip 包头
+                struct *ipHeader = (struct ip *) recvBuffer;
+                // 获取 ip 包头长度 (ip_hl是以字节为单位)
+                int ipHeaderLength = ipHeader->ip_hl * 4;
+                // 获取 icmp 包头
+                struct *icmpHeader = (struct icmp *) (recvBuffer + ipHeaderLength);
+                // 获取 icmp 包长度
+                int icmpPackgeLength = recvSize - ipHeaderLength;
+
+                // 如果小于 8 字节说明不是 icmp 包
+                if (icmpPackgeLength < 8) {
+                    printf("Invalid icmp package, because its length it less than 8 byte\n");
+                    continue;
+                }
+
+                // 判断是 icmp 回应包而且是本机发的
+                if (icmpHeader->icmp_type == ICMP_ECHOREPLY && icmpHeader->icmp_id == (pid & 0xffff)) {
+                    if (icmpHeader->icmp_seq < 0 || icmp->icmp_seq > n + 1) {
+                        printf("Sequence of icmp package is out of range.\n");
+                        continue;
+                    }
+
+                    // 记下收包时间
+                    gettimeofday(&endTime, NULL);
+                    // 计算时差
+                    offsetTime = getOffsetTime(beginTime, endTime);
+
+                    // 输出结果
+                    printf(
+                        "%d byte from %s: seq=%u ttl=%d rtt=%d ms\n",
+                        l,
+                        inet_ntoa(ipHeader->ip_src),
+                        icmpHeader->icmp_seq,
+                        ipHeader->ip_ttl,
+                        offsetTime.tv_sec * 1000 + offsetTime.tv_usec / 1000
+                    );
+                } else {
+                    printf("Invalid icmp package, because it's not a icmp echoreply or it's sender is not the host\n");
+                    continue;
+                }
+
+                break;
+        }
+
+        if (n != 0) nt--;
+        sleep(1);
+    }
 }
 
 void assembleIcmpPackage(struct icmp *header, int sequence, int length, pid_t pid) {
@@ -72,6 +208,20 @@ void assembleIcmpPackage(struct icmp *header, int sequence, int length, pid_t pi
     header->icmp_cksum = getCheckSum((unsigned short *) header, length);
 }
 
+struct timeval getOffsetTime(struct timeval beginTime, struct timeval endTime) {
+    struct timeval offsetTime;
+
+    offsetTime.tv_sec = endTime.tv_sec - beginTime.tv_sec;
+    offsetTime.tv_usec = endTime.tv_usec - beginTime.tv_usec;
+
+    if (offsetTime.tv_usec < 0) {
+        offsetTime.tv_sec--;
+        offsetTime.tv_usec += 1000000;
+    }
+
+    return offsetTime;
+}
+
 unsigned short getCheckSum(unsigned short *header, int length) {
     int count = length;
     int sum = 0;
@@ -94,9 +244,4 @@ unsigned short getCheckSum(unsigned short *header, int length) {
     sum += (sum >> 16);
     result = ~sum;
     return result;
-}
-
-void endWithHelp() {
-    printf("Usage: ping ipAddress [-n] [sendTimes] [-l] [packageLength]\n");
-    exit(0);
 }
