@@ -131,6 +131,7 @@ int ping(char *addressArg, int n, int l) {
     struct timeval tv;
     tv.tv_usec = OUT_TIMEVAL_USEC;
     tv.tv_sec = OUT_TIMEVAL_SEC;
+    struct timeval beginTime, endTime, offsetTime;
 
     while (nt > 0) {
         // 封装 icmp 包
@@ -146,7 +147,6 @@ int ping(char *addressArg, int n, int l) {
         }
 
         // 计时
-        struct timeval beginTime, endTime, offsetTime;
         gettimeofday(&beginTime, NULL);
 
         // 开始收包
