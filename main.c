@@ -196,12 +196,13 @@ int ping(char *addressArg, int n, int l) {
 
                     // 输出结果
                     printf(
-                        "%d byte from %s: icmp_seq=%u ttl=%d rtt=%d ms\n",
+                        "%d byte from %s: icmp_seq=%u ttl=%d rtt=%d s %d us\n",
                         l,
                         inet_ntoa(ipHeader->ip_src),
                         icmpHeader->icmp_seq,
                         ipHeader->ip_ttl,
-                        offsetTime.tv_sec * 1000 + offsetTime.tv_usec / 1000
+                        offsetTime.tv_sec,
+                        offsetTime.tv_usec
                     );
                 } else continue;
 
