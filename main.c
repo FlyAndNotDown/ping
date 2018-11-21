@@ -201,9 +201,6 @@ int ping(char *addressArg, int n, int l) {
                         ipHeader->ip_ttl,
                         offsetTime.tv_sec * 1000 + offsetTime.tv_usec / 1000
                     );
-                } else {
-                    printf("Invalid icmp package, because it's not a icmp echoreply or it's sender is not the host\n");
-                    continue;
                 }
 
                 break;
