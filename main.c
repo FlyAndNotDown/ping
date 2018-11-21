@@ -13,11 +13,19 @@
 #include <netdb.h>
 #include <pthread.h>
 
+// 默认参数
 #define DEFAULT_N 0
-#define DEFAULT_L 100
+#define DEFAULT_L 64
 
+// 函数声明
 void ping(char *, int, int);
 void endWithHelp();
+void assembleIcmpPackage(struct icmp *, int, int);
+int splitIcmpPackage(char *, int);
+unsigned short getCheckSum(unsigned short *, int);
+
+// 定义进程标识
+pid_t pid;
 
 int main(int argc, char *argv[]) {
     int i;
@@ -36,6 +44,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // 获取 pid
+    pid = getpid();
+
     ping(argv[1], n, l);
 
     return 0;
@@ -43,6 +54,63 @@ int main(int argc, char *argv[]) {
 
 void ping(char *ipAddress, int n, int l) {
     // TODO
+}
+
+void assembleIcmpPackage(struct icmp *header, int sequence, int length) {
+    int i;
+
+    // icmp类型：回送请求
+    header->icmp_type = ICMP_ECHO;
+    // icmp代码：0
+    header->icmp_code = 0;
+    // icmp校验和：0
+    header->icmp_cksum = 0;
+    // icmp序列号
+    header->icmp_seq = sequence;
+    // 进程标识为两字节，而 icmp_id 为四字节
+    header->icmp_id = pid & 0xffff;
+
+    // 填充数据段，这里 icmp 报文必须大于 64B
+    for (i = 0; i < length; i++) {
+        header->icmp_data[i] = i;
+    }
+
+    // 计算校验和
+    header->icmp_cksum = getCheckSum((unsigned short *) header, length);
+}
+
+int splitIcmpPackage(char *buffer, int length) {
+    int ipHeaderLength;
+    struct timeval beginTime, endTime, offsetTime;
+    int roundTripTime;
+
+    struct ip *ipHeader = (struct ip *) buffer;
+
+    // TODO
+}
+
+unsigned short getCheckSum(unsigned short *header, int length) {
+    int count = length;
+    int sum = 0;
+    unsigned short *t = header;
+    unsigned short result = 0;
+
+    // 每两个字节累加
+    while (count > 1) {
+        sum += *t++;
+        count -= 2;
+    }
+
+    // 如果最后剩下一个字节，补齐两个字节，继续累加
+    if (count == 1) {
+        * (unsigned char *) (&result) = *(unsigned char *) t;
+        sum += result;
+    }
+
+    sum = (sum >> 16) + (sum & 0xffff);
+    sum += (sum >> 16);
+    result = ~sum;
+    return result;
 }
 
 void endWithHelp() {
