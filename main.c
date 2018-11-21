@@ -123,6 +123,9 @@ int ping(char *ipAddress, int n, int l) {
         // 开始收包
         FD_ZERO(&readFd);
         FD_SET(sock, &readFd);
+
+        int recvSize;
+
         switch (select(sock + 1, &readFd, NULL, NULL, &tv)) {
             case -1:
                 printf("Fail to select\n");
@@ -130,7 +133,7 @@ int ping(char *ipAddress, int n, int l) {
             case 0:
                 break;
             default:
-                int recvSize = recv(sock, recvBuffer, sizeof(recvBuffer), 0);
+                recvSize = recv(sock, recvBuffer, sizeof(recvBuffer), 0);
                 // 接受数据到缓冲区
                 if (recvSize < 0) {
                     printf("Fail to receive data\n");
@@ -155,7 +158,7 @@ int ping(char *ipAddress, int n, int l) {
 
                 // 判断是 icmp 回应包而且是本机发的
                 if (icmpHeader->icmp_type == ICMP_ECHOREPLY && icmpHeader->icmp_id == (pid & 0xffff)) {
-                    if (icmpHeader->icmp_seq < 0 || icmp->icmp_seq > n + 1) {
+                    if (icmpHeader->icmp_seq < 0 || icmpHeader->icmp_seq > n + 1) {
                         printf("Sequence of icmp package is out of range.\n");
                         continue;
                     }
