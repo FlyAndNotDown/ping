@@ -14,11 +14,15 @@
 #include <pthread.h>
 
 // 调试模式
-#define DEV_MODE 1
+#define DEV_MODE 0
 
 // 默认参数
 #define DEFAULT_N 0
 #define DEFAULT_L 56
+
+// L 范围
+#define L_MIN 10
+#define L_MAX 1024 * 1024
 
 // 缓冲区大小
 #define SEND_BUFFER_SIZE 1024 * 1024
@@ -50,6 +54,11 @@ int main(int argc, char *argv[]) {
         if (!strcmp(argv[i], "-l") && i + 1 < argc) {
             l = atoi(argv[i + 1]);
         }
+    }
+
+    if (l < L_MIN || l > L_MAX) {
+        printf("\'l\' is out of range\n");
+        return 0;
     }
 
     ping(argv[1], n, l);
