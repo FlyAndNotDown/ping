@@ -21,7 +21,7 @@
 #define DEFAULT_L 64
 
 // 缓冲区大小
-#define SEND_BUFFER_SIZE 64
+#define SEND_BUFFER_SIZE 64 * 1024
 #define RECV_BUFFER_SIZE 1024 * 1024
 
 // 超时设置
