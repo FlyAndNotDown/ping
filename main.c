@@ -105,7 +105,7 @@ int ping(char *addressArg, int n, int l) {
 
     // 输出信息
     printf(
-        "ping %s, (%d, %d, %d, %d) (%d)%d bytes of data.\n",
+        "PING %s, (%d, %d, %d, %d) (%d)%d bytes of data.\n",
         addressArg,
         internetAddress & 0x000000ff,
         (internetAddress & 0x0000ff00) >> 8,
@@ -203,7 +203,7 @@ int ping(char *addressArg, int n, int l) {
                         ipHeader->ip_ttl,
                         offsetTime.tv_sec * 1000 + offsetTime.tv_usec / 1000
                     );
-                }
+                } else continue;
 
                 break;
         }
