@@ -78,6 +78,8 @@ int ping(char *addressArg, int n, int l) {
 
     // 改造 ip 地址
     struct sockaddr_in address;
+    bzero(&address, sizeof(address));
+    address.sin_family = AF_INET;
     unsigned int internetAddress = inet_addr(addressArg);
     if (internetAddress == INADDR_NONE) {
         // 如果输入的是域名地址
@@ -91,8 +93,6 @@ int ping(char *addressArg, int n, int l) {
     } else {
         memcpy((char *) &address.sin_addr, &internetAddress, sizeof(internetAddress));
     }
-    bzero(&address, sizeof(address));
-    address.sin_family = AF_INET;
     internetAddress = address.sin_addr.s_addr;
 
     // 输出信息
