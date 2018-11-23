@@ -158,6 +158,10 @@ int ping(char *addressArg, int n, int l) {
         currentTryTime = 0;
 
         while (!get && currentTryTime < TRY_TIME) {
+            if (DEV_MODE) {
+                printf("currentTryTime: %d\n", currentTryTime);
+            }
+
             switch (select(sock + 1, &readFd, NULL, NULL, &tv)) {
                 case -1:
                     currentTryTime = TRY_TIME;
