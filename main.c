@@ -14,7 +14,7 @@
 #include <pthread.h>
 
 // 调试模式
-#define DEV_MODE 1
+#define DEV_MODE 0
 
 // 默认参数
 #define DEFAULT_N 0
@@ -27,7 +27,7 @@
 // 超时设置
 #define OUT_TIMEVAL_USEC 0
 #define OUT_TIMEVAL_SEC 1000
-#define TRY_TIME 100
+#define TRY_TIME 5
 
 // 函数声明
 int ping(char *, int, int);
