@@ -27,7 +27,7 @@
 // 超时设置
 #define OUT_TIMEVAL_USEC 0
 #define OUT_TIMEVAL_SEC 1000
-#define TRY_TIME 5
+#define TRY_TIME 3
 
 // 函数声明
 int ping(char *, int, int);
