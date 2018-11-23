@@ -171,6 +171,7 @@ int ping(char *addressArg, int n, int l) {
                     currentTryTime++;
                     break;
                 default:
+                    currentTryTime++;
                     recvSize = recv(sock, recvBuffer, sizeof(recvBuffer), 0);
                     // 接受数据到缓冲区
                     if (recvSize < 0) {
