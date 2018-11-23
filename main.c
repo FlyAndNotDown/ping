@@ -227,7 +227,7 @@ int ping(char *addressArg, int n, int l) {
     }
 }
 
-void assembleIcmpPackage(struct icmp *header, int sequence, int length, pid_t pid) {
+void assembleIcmpPackage(struct icmp *header, int sequence, int dataLength, pid_t pid) {
     int i;
 
     // icmp类型：回送请求
@@ -242,12 +242,12 @@ void assembleIcmpPackage(struct icmp *header, int sequence, int length, pid_t pi
     header->icmp_id = pid & 0xffff;
 
     // 填充数据段，这里 icmp 报文必须大于 64B
-    for (i = 0; i < length; i++) {
+    for (i = 0; i < dataLength; i++) {
         header->icmp_data[i] = i;
     }
 
     // 计算校验和
-    header->icmp_cksum = getCheckSum((unsigned short *) header, length);
+    header->icmp_cksum = getCheckSum((unsigned short *) header, dataLength + 8);
 }
 
 struct timeval getOffsetTime(struct timeval beginTime, struct timeval endTime) {
