@@ -14,7 +14,7 @@
 #include <pthread.h>
 
 // 调试模式
-#define DEV_MODE 1
+#define DEV_MODE 0
 
 // 默认参数
 #define DEFAULT_N 0
@@ -27,6 +27,7 @@
 // 超时设置
 #define OUT_TIMEVAL_USEC 0
 #define OUT_TIMEVAL_SEC 1000
+#define TRY_TIME 100
 
 // 函数声明
 int ping(char *, int, int);
@@ -122,7 +123,13 @@ int ping(char *addressArg, int n, int l) {
     struct timeval tv;
     tv.tv_usec = OUT_TIMEVAL_USEC;
     tv.tv_sec = OUT_TIMEVAL_SEC;
+
+    // 时间结构体
     struct timeval beginTime, endTime, offsetTime;
+
+    // 定义收到标识符和超时计数器
+    int get = 0;
+    int currentTryTime = 0;
 
     while (nt > 0) {
         // 封装 icmp 包
@@ -130,7 +137,7 @@ int ping(char *addressArg, int n, int l) {
         // 发送 icmp 包
         if (sendto(sock, sendBuffer, l + 8, 0, (struct sockaddr *) &address, sizeof(address)) < 0) {
             printf("Send data fail.\n");
-            continue;
+            break;
         }
 
         if (DEV_MODE) {
@@ -146,77 +153,93 @@ int ping(char *addressArg, int n, int l) {
 
         int recvSize;
 
-        switch (select(sock + 1, &readFd, NULL, NULL, &tv)) {
-            case -1:
-                printf("Fail to select\n");
-                break;
-            case 0:
-                break;
-            default:
-                recvSize = recv(sock, recvBuffer, sizeof(recvBuffer), 0);
-                // 接受数据到缓冲区
-                if (recvSize < 0) {
-                    printf("Fail to receive data\n");
-                    continue;
-                }
+        // 重置标识符
+        get = 0;
+        currentTryTime = 0;
 
-                if (DEV_MODE) {
-                    printf("recvSize: %d\n", recvSize);
-                }
-
-                // 解包
-                // 获取 ip 包头
-                struct ip *ipHeader = (struct ip *) recvBuffer;
-                // 获取 ip 包头长度 (ip_hl是以字节为单位)
-                int ipHeaderLength = ipHeader->ip_hl * 4;
-                // 获取 icmp 包头
-                struct icmp *icmpHeader = (struct icmp *) (recvBuffer + ipHeaderLength);
-                // 获取 icmp 包长度
-                int icmpPackgeLength = recvSize - ipHeaderLength;
-
-                // 如果小于 8 字节说明不是 icmp 包
-                if (icmpPackgeLength < 8) {
-                    printf("Invalid icmp package, because its length it less than 8 byte\n");
-                    continue;
-                }
-
-                if (DEV_MODE) {
-                    printf("icmp->icmp_type: %d ICMP_ECHOREPLY:%d\n", icmpHeader->icmp_type, ICMP_ECHOREPLY);
-                    printf("icmp->icmp_id: %d pid: %d\n", icmpHeader->icmp_id, pid);
-                    printf("icmp->icmp_seq: %d\n", icmpHeader->icmp_seq);
-                }
-
-                // 判断是 icmp 回应包而且是本机发的
-                if (icmpHeader->icmp_type == ICMP_ECHOREPLY && icmpHeader->icmp_id == (pid & 0xffff)) {
-                    if (icmpHeader->icmp_seq < 0 || n != 0 && icmpHeader->icmp_seq > n) {
-                        printf("Sequence of icmp package is out of range.\n");
+        while (!get && currentTryTime < TRY_TIME) {
+            switch (select(sock + 1, &readFd, NULL, NULL, &tv)) {
+                case -1:
+                    currentTryTime = TRY_TIME;
+                    printf("Fail to select\n");
+                    break;
+                case 0:
+                    currentTryTime++;
+                    break;
+                default:
+                    recvSize = recv(sock, recvBuffer, sizeof(recvBuffer), 0);
+                    // 接受数据到缓冲区
+                    if (recvSize < 0) {
+                        printf("Fail to receive data\n");
                         continue;
                     }
 
-                    // 记下收包时间
-                    gettimeofday(&endTime, NULL);
-                    // 计算时差
-                    offsetTime = getOffsetTime(beginTime, endTime);
-
                     if (DEV_MODE) {
-                        printf("beginTime: %ds, %dus\n", beginTime.tv_sec, beginTime.tv_usec);
-                        printf("endTime: %ds, %dus\n", endTime.tv_sec, endTime.tv_usec);
-                        printf("offsetTime: %ds, %dus\n", offsetTime.tv_sec, offsetTime.tv_usec);
+                        printf("recvSize: %d\n", recvSize);
                     }
 
-                    // 输出结果
-                    printf(
-                        "%d byte from %s: icmp_seq=%u ttl=%d rtt=%ds%dus\n",
-                        l + 8,
-                        inet_ntoa(ipHeader->ip_src),
-                        icmpHeader->icmp_seq,
-                        ipHeader->ip_ttl,
-                        offsetTime.tv_sec,
-                        offsetTime.tv_usec
-                    );
-                } else continue;
+                    // 解包
+                    // 获取 ip 包头
+                    struct ip *ipHeader = (struct ip *) recvBuffer;
+                    // 获取 ip 包头长度 (ip_hl是以字节为单位)
+                    int ipHeaderLength = ipHeader->ip_hl * 4;
+                    // 获取 icmp 包头
+                    struct icmp *icmpHeader = (struct icmp *) (recvBuffer + ipHeaderLength);
+                    // 获取 icmp 包长度
+                    int icmpPackgeLength = recvSize - ipHeaderLength;
 
-                break;
+                    // 如果小于 8 字节说明不是 icmp 包
+                    if (icmpPackgeLength < 8) {
+                        printf("Invalid icmp package, because its length it less than 8 byte\n");
+                        continue;
+                    }
+
+                    if (DEV_MODE) {
+                        printf("icmp->icmp_type: %d ICMP_ECHOREPLY:%d\n", icmpHeader->icmp_type, ICMP_ECHOREPLY);
+                        printf("icmp->icmp_id: %d pid: %d\n", icmpHeader->icmp_id, pid);
+                        printf("icmp->icmp_seq: %d\n", icmpHeader->icmp_seq);
+                    }
+
+                    // 判断是 icmp 回应包而且是本机发的
+                    if (icmpHeader->icmp_type == ICMP_ECHOREPLY && icmpHeader->icmp_id == (pid & 0xffff)) {
+                        if (icmpHeader->icmp_seq < 0 || n != 0 && icmpHeader->icmp_seq > n) {
+                            printf("Sequence of icmp package is out of range.\n");
+                            continue;
+                        }
+
+                        // 设置收到标识为 1
+                        get = 1;
+
+                        // 记下收包时间
+                        gettimeofday(&endTime, NULL);
+                        // 计算时差
+                        offsetTime = getOffsetTime(beginTime, endTime);
+
+                        if (DEV_MODE) {
+                            printf("beginTime: %ds, %dus\n", beginTime.tv_sec, beginTime.tv_usec);
+                            printf("endTime: %ds, %dus\n", endTime.tv_sec, endTime.tv_usec);
+                            printf("offsetTime: %ds, %dus\n", offsetTime.tv_sec, offsetTime.tv_usec);
+                        }
+
+                        // 输出结果
+                        printf(
+                            "%d byte from %s: icmp_seq=%u ttl=%d rtt=%ds%dus\n",
+                            l + 8,
+                            inet_ntoa(ipHeader->ip_src),
+                            icmpHeader->icmp_seq,
+                            ipHeader->ip_ttl,
+                            offsetTime.tv_sec,
+                            offsetTime.tv_usec
+                        );
+                    } else continue;
+
+                    break;
+            }
+        }
+
+        if (!get) {
+            printf("Unreachable host.\n");
+            return 0;
         }
 
         if (n != 0) nt--;
