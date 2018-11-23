@@ -228,7 +228,7 @@ int ping(char *addressArg, int n, int l) {
 
                         // 输出结果
                         printf(
-                            "%d byte from %s: icmp_seq=%u ttl=%d rtt=%.3f\n",
+                            "%d byte from %s: icmp_seq=%u ttl=%d rtt=%.3fms\n",
                             l + 8,
                             inet_ntoa(ipHeader->ip_src),
                             icmpHeader->icmp_seq,
