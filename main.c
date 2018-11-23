@@ -14,7 +14,7 @@
 #include <pthread.h>
 
 // 调试模式
-#define DEV_MODE 1
+#define DEV_MODE 0
 
 // 默认参数
 #define DEFAULT_N 0
@@ -157,7 +157,7 @@ int ping(char *addressArg, int n, int l) {
         get = 0;
         currentTryTime = 0;
 
-        while (!get && currentTryTime < TRY_TIME) {
+        while (!get && currentTryTime <= TRY_TIME) {
             if (DEV_MODE) {
                 printf("currentTryTime: %d\n", currentTryTime);
             }
