@@ -233,7 +233,7 @@ int ping(char *addressArg, int n, int l) {
                             inet_ntoa(ipHeader->ip_src),
                             icmpHeader->icmp_seq,
                             ipHeader->ip_ttl,
-                            offsetTime.tv_sec * 1000 + offsetTime.tv_usec * 1.0 / 1000,
+                            offsetTime.tv_sec * 1000 + offsetTime.tv_usec * 1.0 / 1000
                         );
                     } else continue;
 
