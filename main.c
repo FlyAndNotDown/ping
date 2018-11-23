@@ -198,6 +198,12 @@ int ping(char *addressArg, int n, int l) {
                     // 计算时差
                     offsetTime = getOffsetTime(beginTime, endTime);
 
+                    if (DEV_MODE) {
+                        printf("beginTime: %ds, %dus\n", beginTime.tv_sec, beginTime.tv_usec);
+                        printf("endTime: %ds, %dus\n", endTime.tv_sec, endTime.tv_usec);
+                        printf("offsetTime: %ds, %dus\n", offsetTime.tv_sec, offsetTime.tv_usec);
+                    }
+
                     // 输出结果
                     printf(
                         "%d byte from %s: icmp_seq=%u ttl=%d rtt=%ds%dus\n",
